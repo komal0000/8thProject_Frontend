@@ -6,14 +6,16 @@ importScripts(
 );
 
 firebase.initializeApp({
-  apiKey: "AIzaSyCk2LEXYTNhgrZiY3KXlsjylZdDD1KA13k",
-  authDomain: "tsky-28991.firebaseapp.com",
-  projectId: "tsky-28991",
-  storageBucket: "tsky-28991.firebasestorage.app",
-  messagingSenderId: "666432440443",
-  appId: "1:666432440443:web:b50fa0df3b0a422d087ade",
-  measurementId: "G-L5N0H3DKZ0",
+  apiKey: "AIzaSyDyeHO51_sL_jZ-bZ4GqoAQwAg9W2BRjfQ",
+  authDomain: "tasky101-16282.firebaseapp.com",
+  projectId: "tasky101-16282",
+  storageBucket: "tasky101-16282.firebasestorage.app",
+  messagingSenderId: "515334120543",
+  appId: "1:515334120543:web:f408ae313356ecdc4ca7ea",
+  measurementId: "G-L2NZMYR56Z"
 });
+
+
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
