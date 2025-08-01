@@ -1,0 +1,678 @@
+<div id="webcrumbs">
+  <div
+    *ngIf="showToast"
+    class="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 animate-fade-in"
+    [ngClass]="
+      toastType === 'success'
+        ? 'bg-green-500 text-white'
+        : 'bg-red-500 text-white'
+    "
+  >
+    <span class="material-symbols-outlined text-2xl">{{
+      toastType === "success" ? "check_circle" : "error"
+    }}</span>
+    <span>{{ toastMessage }}</span>
+  </div>
+  <div
+    class="w-full max-w-full bg-neutral-50 p-2 sm:p-3 md:p-4 font-sans mx-auto"
+  >
+    <div class="flex items-center justify-between mb-8">
+      <!-- Left: Heading -->
+      <img [src]="'icons/icon.png'" style="height: 65px" />
+      <!-- <h1 class="text-3xl font-bold font-title text-neutral-800"> -->
+      <!--   Taskey Dashboard -->
+      <!-- </h1> -->
+
+      <!-- Right: Search, Notification, Profile -->
+      <div class="flex items-center gap-4">
+        <!-- Search Bar -->
+        <div class="relative">
+          <span
+            class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-neutral-400"
+            >search</span
+          >
+          <input
+            type="text"
+            placeholder="Search projects, members..."
+            class="pl-10 pr-4 py-2 rounded-full border border-neutral-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-300 w-64"
+          />
+        </div>
+        <!-- Notification Icon -->
+        <div class="relative">
+          <span
+            class="material-symbols-outlined p-2 bg-white rounded-full border border-neutral-200 cursor-pointer hover:bg-neutral-100 transition-colors duration-300"
+            (click)="toggleNotificationDropdown()"
+            tabindex="0"
+            >notifications</span
+          >
+          <!-- Notification Dropdown -->
+          <div
+            *ngIf="showNotificationDropdown"
+            class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg py-2 z-20 transition-all duration-300 max-h-96 overflow-y-auto"
+          >
+            <div class="flex justify-between items-center px-4 pb-2">
+              <span class="font-semibold">Notifications</span>
+            </div>
+            <div
+              *ngIf="!notifications || notifications.length === 0"
+              class="px-4 py-2 text-neutral-400 text-sm"
+            >
+              No notifications.
+            </div>
+            <div
+              *ngFor="let notif of notifications || []"
+              class="px-4 py-2 border-b last:border-b-0 hover:bg-neutral-100 cursor-pointer"
+            >
+              <div class="font-medium text-neutral-800">
+                {{ notif.title || "Notification" }}
+              </div>
+              <div class="text-neutral-500 text-sm">
+                {{ notif.body || notif.message }}
+              </div>
+              <div class="text-xs text-neutral-400 mt-1">
+                {{ notif.created_at | date: "short" }}
+              </div>
+              <div class="flex gap-2 mt-2">
+                <button
+                  class="text-xs px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200"
+                  (click)="deleteNotification(notif)"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- User Profile -->
+        <div class="relative" (click)="$event.stopPropagation()">
+          <img
+            src="{{
+              (user && user.profile_image) ||
+                'https://images.unsplash.com/photo-1511367461989-f85a21fda167?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3MzkyNDZ8MHwxfHNlYXJjaHwxfHxwcm9maWxlfGVufDB8fHx8MTc0NjM5OTk0NHww&ixlib=rb-4.0.3&q=80&w=1080'
+            }}"
+            alt="User profile"
+            class="w-10 h-10 rounded-full border-2 border-primary-500 cursor-pointer hover:scale-105 transition-transform duration-300"
+            (click)="showProfileDropdown = !showProfileDropdown"
+            tabindex="0"
+          />
+          <div
+            *ngIf="showProfileDropdown"
+            class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-10 transition-all duration-300"
+          >
+            <a
+              (click)="showProfile()"
+              class="block px-4 py-2 hover:bg-neutral-100 cursor-pointer"
+              >My Profile</a
+            >
+            <a
+              (click)="showAllUser()"
+              class="block px-4 py-2 hover:bg-neutral-100 cursor-pointer"
+              >Show all User</a
+            >
+            <a
+              (click)="logout()"
+              class="block px-4 py-2 hover:bg-neutral-100 text-red-500 cursor-pointer"
+              >Logout</a
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid lg:grid-cols-4 gap-6 w-full">
+      <div class="lg:col-span-3 flex flex-col gap-6">
+        <!-- small card (section  -->
+        <div class="flex flex-row flex-wrap gap-6">
+          <div
+            class="flex-1 min-w-[250px] max-w-full sm:max-w-[calc(50%-1.5rem)] lg:max-w-[calc(33.333%-1.5rem)] bg-white p-6 rounded-2xl shadow border border-neutral-100"
+          >
+            <div class="flex items-center justify-between">
+              <span class="text-neutral-500 font-semibold"
+                >Active Projects</span
+              >
+              <span class="material-symbols-outlined text-primary-500"
+                >equalizer</span
+              >
+            </div>
+            <div class="text-3xl font-bold text-neutral-900">
+              {{ totalProjects }}
+            </div>
+            <div class="flex items-center text-green-600 text-sm">
+              <span class="material-symbols-outlined text-base mr-1"
+                >arrow_upward</span
+              >
+              4% from last week
+            </div>
+          </div>
+
+          <div
+            class="flex-1 min-w-[250px] max-w-full sm:max-w-[calc(50%-1.5rem)] lg:max-w-[calc(33.333%-1.5rem)] bg-white p-6 rounded-2xl shadow border border-neutral-100"
+          >
+            <div class="flex items-center justify-between">
+              <span class="text-neutral-500 font-semibold">Team Members</span>
+              <span class="material-symbols-outlined text-primary-500"
+                >group</span
+              >
+            </div>
+            <div class="text-3xl font-bold text-neutral-900">
+              {{ totalMembers }}
+            </div>
+            <div class="flex items-center text-green-600">
+              <span class="material-symbols-outlined text-base mr-1">
+                arrow_upward
+              </span>
+              2 % from last week
+            </div>
+          </div>
+
+          <div
+            class="flex-1 min-w-[250px] max-w-full sm:max-w-[calc(50%-1.5rem)] lg:max-w-[calc(33.333%-1.5rem)] bg-white p-6 rounded-2xl shadow border border-neutral-100"
+          >
+            <div class="flex items-center justify-between">
+              <span class="text-neutral-500 font-semibold"
+                >Tasks Completed</span
+              >
+              <span class="material-symbols-outlined text-primary-500"
+                >task_alt</span
+              >
+            </div>
+            <div class="text-3xl font-bold text-neutral-900">
+              {{ getTotalCompletedTasks() }}
+            </div>
+            <div class="flex items-center text-yellow-600 text-sm">
+              <span class="material-symbols-outlined text-base mr-1"
+                >pending_actions</span
+              >
+              {{ getTotalRemainingTasks() }} tasks remaining
+            </div>
+          </div>
+        </div>
+        <div
+          class="bg-white p-3 sm:p-4 md:p-5 rounded-xl shadow-sm border border-neutral-100"
+        >
+          <div
+            class="flex flex-row sm:flex-col justify-between items-center mb-3 sm:mb-4 gap-2 sm:gap-0"
+          >
+            <h2 class="text-xl font-bold text-neutral-800">Running Projects</h2>
+            <button
+              class="flex items-center bgprimary gap-2 px-4 py-2 text-white rounded-lg"
+              (click)="showNewProjectForm = true"
+            >
+              <span class="material-symbols-outlined text-sm">add</span>
+              <span>New Project</span>
+            </button>
+          </div>
+
+          <div class="space-y-4">
+            <div
+              *ngFor="let project of (projects || []); let i = index"
+              class="p-4 border border-neutral-100 rounded-lg hover:shadow-md transition-all duration-300 cursor-pointer"
+              [routerLink]="['/project', project.id]"
+              style="position: relative"
+            >
+              <div class="flex justify-between items-center mb-3 relative">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center"
+                  >
+                    <span class="material-symbols-outlined text-blue-600"
+                      >memory</span
+                    >
+                  </div>
+                  <div>
+                    <h3 class="font-semibold">{{ project.name }}</h3>
+                    <p class="text-sm text-neutral-500">
+                      Frontend Team • 8 members
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span
+                    class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium"
+                    >On Track</span
+                  >
+                  <button
+                    class="p-1 rounded-full hover:bg-neutral-100 transition"
+                    (click)="
+                      openContextMenu($event, i); $event.stopPropagation()
+                    "
+                    type="button"
+                  >
+                    <span class="material-symbols-outlined">more_vert</span>
+                  </button>
+                  <!-- Context Menu -->
+                  <div
+                    *ngIf="showContextMenu && contextMenuIndex === i"
+                    class="absolute right-0 mt-10 z-50 bg-white border rounded shadow-lg"
+                    style="min-width: 120px"
+                    (click)="$event.stopPropagation()"
+                  >
+                    <button
+                      class="block w-full px-4 py-2 text-left hover:bg-neutral-100"
+                      (click)="editProject(project); $event.stopPropagation()"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      class="block w-full px-4 py-2 text-left hover:bg-neutral-100 text-red-500"
+                      (click)="deleteProject(project.id)"
+                    >
+                      Delete
+                    </button>
+                    <button
+                      class="block w-full px-4 py-2 text-left hover:bg-neutral-100"
+                      [routerLink]="['/reports', project.id]"
+                    >
+                      View Report
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="mb-2">
+                <div class="flex justify-between mb-1 text-sm">
+                  <span>Progress</span>
+                  <span class="font-medium"
+                    >{{ project.progress_percentage }}%</span
+                  >
+                </div>
+                <div class="w-full bg-neutral-100 rounded-full h-2">
+                  <div
+                    class="bg-yellow-500 h-2 rounded-full"
+                    [style.width.%]="project.progress_percentage"
+                  ></div>
+                </div>
+              </div>
+              <div class="text-sm text-neutral-500">
+                <span>Due date: {{ project.due_date }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 text-center">
+            <button
+              class="bgprimary px-4 py-2 rounded-xl text-white font-medium flex items-center gap-1 mx-auto cursor-pointer"
+              (click)="openAllProjectsModal()"
+            >
+              <span>View all projects</span>
+              <span class="material-symbols-outlined text-sm"
+                >arrow_forward</span
+              >
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- right side -->
+      <div class="flex flex-col gap-6">
+        <div
+          class="bg-white p-5 rounded-xl shadow-sm border border-neutral-100"
+        >
+          <div class="flex justify-between items-center mb-3 sm:mb-4">
+            <h2 class="text-lg font-bold text-neutral-800">Team Members</h2>
+            <button
+              class="text-primary-500 hover:text-primary-600 transition-colors duration-300"
+            >
+              <span class="material-symbols-outlined">add</span>
+            </button>
+          </div>
+          <div class="space-y-4">
+            <div *ngFor="let user of allVerifiedUsers || []">
+              <div
+                class="flex items-center justify-between hover:bg-neutral-50 p-2 rounded-lg transition-colors duration-300 cursor-pointer"
+              >
+                <div class="flex items-center gap-3">
+                  <img
+                    src="{{
+                      (user && user.profile_image) ||
+                        'https://images.unsplash.com/photo-1511367461989-f85a21fda167?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3MzkyNDZ8MHwxfHNlYXJjaHwxfHxwcm9maWxlfGVufDB8fHx8MTc0NjM5OTk0NHww&ixlib=rb-4.0.3&q=80&w=1080'
+                    }}"
+                    alt="User profile"
+                    class="w-10 h-10 rounded-full"
+                  />
+                  <div>
+                    <h3 class="font-medium">{{ user?.name }}</h3>
+                    <p class="text-xs text-neutral-500">{{ user?.dev_role }}</p>
+                  </div>
+                </div>
+                <span class="w-3 h-3 bg-green-500 rounded-full"></span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 text-center">
+            <button
+              class="bgprimary px-4 py-2 rounded-xl text-white font-medium flex items-center gap-1 mx-auto cursor-pointer"
+              (click)="openAllMembersModal()"
+            >
+              <span>View all members</span>
+              <span class="material-symbols-outlined text-sm"
+                >arrow_forward</span
+              >
+            </button>
+          </div>
+        </div>
+        <div
+          class="bg-white p-5 rounded-xl shadow-sm border border-neutral-100"
+        >
+          <h2 class="text-lg font-bold text-neutral-800 mb-4">
+            Upcoming Deadlines
+          </h2>
+          <div class="space-y-3">
+            <ng-container *ngFor="let project of (projects || []) | slice: 0 : 3">
+              <div
+                class="p-3 border-l-4 rounded-r-lg bg-neutral-50 transition-colors duration-300 cursor-pointer"
+                [ngClass]="{
+                  'border-red-500 hover:bg-red-50':
+                    daysUntilDue(project.due_date) <= 3,
+                  'border-yellow-500 hover:bg-yellow-50':
+                    daysUntilDue(project.due_date) > 3 &&
+                    daysUntilDue(project.due_date) <= 7,
+                  'border-green-500 hover:bg-green-50':
+                    daysUntilDue(project.due_date) > 7,
+                }"
+              >
+                <h3 class="font-medium">{{ project.name }}</h3>
+                <p class="text-xs text-neutral-500">
+                  Due in
+                  <span *ngIf="daysUntilDue(project.due_date) > 1"
+                    >{{ daysUntilDue(project.due_date) }} days</span
+                  >
+                  <span *ngIf="daysUntilDue(project.due_date) === 1"
+                    >1 day</span
+                  >
+                  <span *ngIf="daysUntilDue(project.due_date) === 0"
+                    >today</span
+                  >
+                  <span *ngIf="daysUntilDue(project.due_date) < 0"
+                    >overdue</span
+                  >
+                </p>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="grid md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5 lg:gap-6 mt-4 sm:mt-5 md:mt-6"
+    >
+      <div
+        class="bg-white p-5 rounded-xl shadow-sm border border-neutral-100 lg:col-span-2"
+      >
+        <app-activities></app-activities>
+      </div>
+
+      <div
+        class="bg-white p-3 sm:p-4 md:p-5 rounded-xl shadow-sm border border-neutral-100"
+      >
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-bold text-neutral-800">Project Status</h2>
+          <button
+            class="text-neutral-500 hover:text-neutral-700 transition-colors duration-300"
+          >
+            <span class="material-symbols-outlined">more_vert</span>
+          </button>
+        </div>
+        <div class="space-y-6">
+          <ng-container *ngFor="let project of (projects || []) | slice: 0 : 5">
+            <div>
+              <div class="flex justify-between items-center mb-2">
+                <span class="font-medium">{{ project.name }}</span>
+                <span class="text-sm font-medium"
+                  >{{ project.progress_percentage }}%</span
+                >
+              </div>
+              <div class="w-full bg-neutral-100 rounded-full h-2.5">
+                <div
+                  class="bg-yellow-500 h-2.5 rounded-full"
+                  [style.width.%]="project.progress_percentage"
+                ></div>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+        <div class="mt-6 pt-4 border-t border-neutral-100">
+          <h3 class="font-medium mb-3">Overall Completion</h3>
+          <div class="flex items-end gap-2">
+            <div class="text-3xl font-bold text-primary-600">
+              {{ overallCompletion() }}%
+            </div>
+            <div class="text-sm text-green-600 flex items-center">
+              <span class="material-symbols-outlined text-sm mr-1"
+                >arrow_upward</span
+              >
+              <span>Progress</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- New Project Popup Modal -->
+<div
+  *ngIf="showNewProjectForm"
+  class="fixed inset-0 z-50 flex items-center justify-center glass-overlay"
+>
+  <div class="glass-modal p-6 w-full max-w-md relative">
+    <h2 class="text-xl font-bold mb-4">Create New Project</h2>
+    <form [formGroup]="projectForm" (ngSubmit)="submitNewProject()">
+      <div class="mb-4">
+        <label class="block text-sm font-medium mb-1">Project Name</label>
+        <input
+          type="text"
+          formControlName="name"
+          class="w-full border border-neutral-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+          [class.border-red-500]="
+            projectForm.get('name')?.invalid && projectForm.get('name')?.touched
+          "
+        />
+        <div
+          *ngIf="
+            projectForm.get('name')?.invalid && projectForm.get('name')?.touched
+          "
+          class="text-red-500 text-xs mt-1"
+        >
+          Project name is required.
+        </div>
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium mb-1">Description</label>
+        <textarea
+          formControlName="description"
+          rows="3"
+          class="w-full border border-neutral-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+        ></textarea>
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium mb-1">Project URL (Optional)</label>
+        <input type="url" formControlName="repo_url" placeholder="https://example.com"
+          class="w-full border border-neutral-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" [class.border-red-500]="
+                  projectForm.get('repo_url')?.invalid && projectForm.get('repo_url')?.touched
+                " />
+        <div *ngIf="
+                  projectForm.get('repo_url')?.invalid && projectForm.get('repo_url')?.touched
+                " class="text-red-500 text-xs mt-1">
+          Please enter a valid URL (starting with http:// or https://).
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 mt-6">
+        <button
+          type="button"
+          class="px-4 py-2 rounded bg-neutral-200 text-neutral-700 hover:bg-neutral-300"
+          (click)="closeNewProjectForm()"
+          [disabled]="isSubmitting"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="px-4 py-2 rounded bgprimary text-white hover:bg-primary-600"
+          [disabled]="isSubmitting || projectForm.invalid"
+        >
+          <span *ngIf="!isSubmitting">Create</span>
+          <span *ngIf="isSubmitting">Creating...</span>
+        </button>
+      </div>
+    </form>
+    <button
+      class="absolute top-2 right-2 text-neutral-400 hover:text-neutral-600 text-xl"
+      (click)="closeNewProjectForm()"
+      [disabled]="isSubmitting"
+    >
+      &times;
+    </button>
+  </div>
+</div>
+
+<!-- Edit Project Popup Modal -->
+<div
+  *ngIf="showEditProjectForm"
+  class="fixed inset-0 z-50 flex items-center justify-center glass-overlay"
+>
+  <div class="glass-modal p-6 w-full max-w-md relative">
+    <h2 class="text-xl font-bold mb-4">Edit Project</h2>
+    <form [formGroup]="editProjectForm" (ngSubmit)="submitEditProject()">
+      <div class="mb-4">
+        <label class="block text-sm font-medium mb-1">Project Name</label>
+        <input
+          type="text"
+          formControlName="name"
+          class="w-full border border-neutral-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+          [class.border-red-500]="
+            editProjectForm.get('name')?.invalid &&
+            editProjectForm.get('name')?.touched
+          "
+        />
+        <div
+          *ngIf="
+            editProjectForm.get('name')?.invalid &&
+            editProjectForm.get('name')?.touched
+          "
+          class="text-red-500 text-xs mt-1"
+        >
+          Project name is required.
+        </div>
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium mb-1">Description</label>
+        <textarea
+          formControlName="description"
+          rows="3"
+          class="w-full border border-neutral-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+        ></textarea>
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium mb-1">Due Date:</label>
+        <input
+          type="date"
+          formControlName="due_date"
+          class="w-full border border-neutral-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+        />
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium mb-1">Project URL (Optional)</label>
+        <input type="url" formControlName="repo_url" placeholder="https://example.com"
+          class="w-full border border-neutral-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" [class.border-red-500]="
+                  editProjectForm.get('repo_url')?.invalid && editProjectForm.get('repo_url')?.touched
+                " />
+        <div *ngIf="
+                  editProjectForm.get('repo_url')?.invalid && editProjectForm.get('repo_url')?.touched
+                " class="text-red-500 text-xs mt-1">
+          Please enter a valid URL (starting with http:// or https://).
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 mt-6">
+        <button
+          type="button"
+          class="px-4 py-2 rounded bg-neutral-200 text-neutral-700 hover:bg-neutral-300"
+          (click)="closeEditProjectForm()"
+          [disabled]="isSubmittingEdit"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="px-4 py-2 rounded bgprimary text-white hover:bg-primary-600"
+          [disabled]="isSubmittingEdit || editProjectForm.invalid"
+        >
+          <span *ngIf="!isSubmittingEdit">Save</span>
+          <span *ngIf="isSubmittingEdit">Saving...</span>
+        </button>
+      </div>
+    </form>
+    <button
+      class="absolute top-2 right-2 text-neutral-400 hover:text-neutral-600 text-xl"
+      (click)="closeEditProjectForm()"
+      [disabled]="isSubmittingEdit"
+    >
+      &times;
+    </button>
+  </div>
+</div>
+
+<!-- All Members Modal -->
+<div
+  *ngIf="showAllMembersModal"
+  class="fixed inset-0 z-50 flex items-center justify-center glass-overlay"
+>
+  <div class="glass-modal p-6 w-full max-w-2xl relative">
+    <h2 class="text-xl font-bold mb-4">All Members</h2>
+    <button
+      class="absolute top-2 right-2 text-neutral-400 hover:text-neutral-600 text-xl"
+      (click)="closeAllMembersModal()"
+    >
+      &times;
+    </button>
+    <div *ngIf="!allUsers || allUsers.length === 0" class="text-neutral-500">
+      No members found.
+    </div>
+    <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+      <div
+        *ngFor="let user of allUsers || []"
+        class="bg-white p-4 rounded-lg shadow border flex items-center gap-4"
+      >
+        <img
+          [src]="
+            (user && user.profile_image) ||
+            'https://images.unsplash.com/photo-1511367461989-f85a21fda167?...'
+          "
+          alt="User profile"
+          class="w-12 h-12 rounded-full border"
+        />
+        <div>
+          <div class="font-semibold">{{ user?.name }}</div>
+          <div class="text-sm text-neutral-500">{{ user?.dev_role }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- All Projects Modal -->
+<div
+  *ngIf="showAllProjectsModal"
+  class="fixed inset-0 z-50 flex items-center justify-center glass-overlay"
+>
+  <div class="glass-modal p-6 w-full max-w-2xl relative">
+    <h2 class="text-xl font-bold mb-4">All Projects</h2>
+    <button
+      class="absolute top-2 right-2 text-neutral-400 hover:text-neutral-600 text-xl"
+      (click)="closeAllProjectsModal()"
+    >
+      &times;
+    </button>
+    <div *ngIf="!projects || projects.length === 0" class="text-neutral-500">
+      No projects found.
+    </div>
+    <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+      <div
+        *ngFor="let project of projects || []"
+        (click)="goToProject(project.id)"
+        class="bg-white p-4 rounded-lg shadow border cursor-pointer hover:bg-neutral-50 transition flex flex-col gap-2"
+      >
+        <div class="font-semibold text-lg">{{ project.name }}</div>
+        <div class="text-sm text-neutral-500">{{ project.description }}</div>
+      </div>
+    </div>
+  </div>
+</div>
