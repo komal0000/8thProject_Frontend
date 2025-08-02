@@ -151,7 +151,8 @@ export class ProjectComponent {
     this.loadCustomStatuses();
     this.apiService.get('sadmin/users').subscribe({
       next: (res: any) => {
-        this.allUsers = res.users;
+        console.log('Fetched users:', res.users);
+        this.allUsers = res.users.filter((user: any) => user.role === 3 );
       },
       error: (err) => {
         console.error('Failed to load users:', err);
@@ -410,7 +411,7 @@ export class ProjectComponent {
       }
       return false;
     });
-    console.log(`getTasks for status ${status}:`, filteredTasks);
+    // console.log(`getTasks for status ${status}:`, filteredTasks);
     return filteredTasks;
   }
 
