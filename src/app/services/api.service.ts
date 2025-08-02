@@ -30,8 +30,11 @@ export class ApiService {
     if (
       window.location.hostname === 'localhost' ||
       window.location.hostname === '127.0.0.1'
+
     ) {
       this.baseURL_wo = 'http://localhost:8000';
+    }else if(window.location.hostname.startsWith('192.168.')){
+      this.baseURL_wo = `http://${window.location.hostname}:8000`;
     } else {
       this.baseURL_wo = `https://api.${window.location.hostname}`;
     }
@@ -40,7 +43,8 @@ export class ApiService {
 
   private getHttpOptions(): { headers: HttpHeaders } {
     const token = this.authService.getToken();
-    console.log('tokenlhhhhh', token);
+    console.log('Token check:', token ? 'Token exists' : 'No token found');
+    console.log('Token value:', token);
     let headers = new HttpHeaders({
       'Content-Type': 'application/json',
     });
@@ -57,6 +61,7 @@ export class ApiService {
   get<T>(endpoint: string): Observable<T> {
     return this.http
       .get<T>(`${this.baseURL}/${endpoint}`, this.getHttpOptions())
+
       .pipe(catchError(this.handleError));
   }
 
@@ -71,6 +76,7 @@ export class ApiService {
   put<T>(endpoint: string, data: any): Observable<T> {
     return this.http
       .put<T>(`${this.baseURL}/${endpoint}`, data, this.getHttpOptions())
+
       .pipe(catchError(this.handleError));
   }
 
@@ -92,7 +98,7 @@ export class ApiService {
   }
 
   // Error handling
-  private handleError(error: HttpErrorResponse): Observable<never> {
+  private handleError = (error: HttpErrorResponse): Observable<never> => {
     const customError: customHttpError = {
       reason: 'An error occurred',
       error_type: 'Unknown Error',
@@ -119,6 +125,8 @@ export class ApiService {
           customError.error_type = 'not_authenticated';
           customError.reason =
             'Authentication is required to access this resource.';
+          console.log('Navigating to login due to 401 Unauthorized');
+          this.router.navigate(['/login']);
           break;
         case 403:
           customError.error_type = 'access_denied';
@@ -153,5 +161,5 @@ export class ApiService {
       `Error Type: ${customError.error_type}\nReason: ${customError.reason}`,
     );
     return throwError(() => customError);
-  }
+  };
 }

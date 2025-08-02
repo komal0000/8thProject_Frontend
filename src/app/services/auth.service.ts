@@ -8,17 +8,29 @@ import { Router } from '@angular/router';
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:8000';
+  private apiUrl: string;
   private tokenKey = 'auth_token';
 
   constructor(
     private http: HttpClient,
     private router: Router,
-  ) {}
+  ) {
+    // Use the same dynamic URL logic as ApiService
+    if (
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1'
+    ) {
+      this.apiUrl = 'http://localhost:8000';
+    } else if (window.location.hostname.startsWith('192.168.')) {
+      this.apiUrl = `http://${window.location.hostname}:8000`;
+    } else {
+      this.apiUrl = `https://api.${window.location.hostname}`;
+    }
+  }
 
   loginWithGithub(): void {
     console.log('hello');
-    window.location.href = 'http://localhost:8000/auth/github/redirect';
+    window.location.href = `${this.apiUrl}/auth/github/redirect`;
   }
 
   setToken(token: string): void {
