@@ -135,6 +135,17 @@ export class DashboardPageComponent implements OnInit {
         console.error('Error fetching projects:', err);
       },
     });
+
+    this.apiService.get('sadmin/users').subscribe({
+      next: (res: any) => {
+        this.allUsers = res.users || [];
+        this.totalMembers = this.allUsers.length;
+      },
+      error: (err) => {
+        console.error('Error fetching all users:', err);
+        this.allUsers = [];
+      },
+    });
   }
 
   logout() {
